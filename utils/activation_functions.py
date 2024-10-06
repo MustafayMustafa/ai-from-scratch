@@ -9,8 +9,8 @@ def sigmoid(value):
         return math.pow(math.e, value) / (1 + math.pow(math.e, value))
 
 
-def relu(value):
-    raise NotImplementedError
+def relu(x):
+    return [max(0, value) for value in x]
 
 
 def softmax(x):

@@ -13,9 +13,8 @@ def test_sigmoid():
     assert sigmoid(-1000) == pytest.approx(0.0, rel=1e-5)
 
 
-@pytest.mark.xfail(reason="Function not implemented yet")
 def test_relu():
-    pass
+    assert relu([1, 0, -1]) == [1, 0, 0]
 
 
 @pytest.fixture

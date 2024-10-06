@@ -13,5 +13,6 @@ def relu(value):
     raise NotImplementedError
 
 
-def softmax(value):
-    raise NotImplementedError
+def softmax(x):
+    exponentials = [math.exp(value) for value in x]
+    return [exp / sum(exponentials) for exp in exponentials]

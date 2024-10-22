@@ -2,19 +2,6 @@ from typing import Callable
 import numpy as np
 
 
-def get_activation_function(function: str) -> Callable:
-    activation_map = {
-        "sigmoid": sigmoid,
-        "relu": relu,
-        "softmax": softmax,
-        "tanh": tanh,
-    }
-    if function not in activation_map:
-        raise ValueError("Activation function not defined")
-
-    return activation_map[function]
-
-
 def sigmoid(x):
     # clamp for numerical stability
     x = np.clip(x, -700, 700)

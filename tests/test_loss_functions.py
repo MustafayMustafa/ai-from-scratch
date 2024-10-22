@@ -1,4 +1,4 @@
-from utils.loss_functions import (
+from common.loss_functions import (
     mean_absolute_error,
     mean_square_error,
     hinge_loss,

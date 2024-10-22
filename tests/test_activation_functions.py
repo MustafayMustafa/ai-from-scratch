@@ -1,7 +1,7 @@
 import pytest
 import numpy as np
 import numpy.testing as npt
-from utils.activation_functions import sigmoid, relu, softmax, tanh
+from common.activation_functions import sigmoid, relu, softmax, tanh
 
 
 def test_sigmoid():

@@ -25,9 +25,24 @@ def softmax(x):
 
 
 def tanh(x):
-    # large values saturate to +-1 so can handle numerical stability like so
-    return np.where(
-        x > 20,
-        1,
-        np.where(x < -20, -1, (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))),
+    if np.isscalar(x):
+        if x > 20:
+            return 1
+        elif x < -20:
+            return -1
+        else:
+            return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
+
+    x = np.asarray(x)
+    result = np.zeros_like(x)
+
+    # handle numerical stability
+    result[x > 20] = 1
+    result[x < -20] = -1
+
+    mask = (x >= -20) & (x <= 20)
+    result[mask] = (np.exp(x[mask]) - np.exp(-x[mask])) / (
+        np.exp(x[mask]) + np.exp(-x[mask])
     )
+
+    return result

@@ -3,6 +3,7 @@ from common.loss_functions import (
     mean_square_error,
     hinge_loss,
     binary_cross_entropy,
+    root_mean_square_error,
 )
 import numpy as np
 import pytest
@@ -41,7 +42,7 @@ def test_mse(basic_case):
 
 def test_rmse(basic_case):
     truth, predictions = basic_case
-    result = mean_square_error(truth, predictions)
+    result = root_mean_square_error(truth, predictions)
     assert result == 1
 
 

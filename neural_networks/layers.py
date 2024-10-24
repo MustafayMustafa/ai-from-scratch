@@ -50,13 +50,14 @@ class ConnectedLayer(BaseLayer):
         z = W.x + b
         a = f(z)
         """
-        linear_transformation = np.dot(self.weights, input_data) + self.biases
+        self.input = input_data
+        linear_transformation = np.dot(self.weights, self.input) + self.biases
         if self.activation:
-            output = self.activation(linear_transformation)
+            self.output = self.activation(linear_transformation)
         else:
-            output = linear_transformation
+            self.output = linear_transformation
 
-        return output
+        return self.output
 
     def backward(self):
         pass

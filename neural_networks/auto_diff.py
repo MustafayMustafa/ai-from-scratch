@@ -158,6 +158,22 @@ def absolute(tensor):
     return result
 
 
+def log(tensor):
+    track_gradient = tensor.track_gradient
+    result = Tensor(np.log(tensor.value), track_gradient)
+
+    def _backward(output_tensor):
+        if tensor.track_gradient:
+            tensor.gradient = (
+                tensor.gradient or 0
+            ) + output_tensor.gradient / tensor.value
+
+    result.backward_function = _backward
+    result.parents = [tensor]
+
+    return result
+
+
 class Tensor:
     def __init__(self, value, track_gradient=False):
         self.value = value

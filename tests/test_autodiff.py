@@ -236,3 +236,29 @@ def test_absolute():
 
     assert result.value == 0.0
     assert np.isclose(c.gradient, 0.0)
+
+
+def test_log():
+    # test psotiive value
+    a = Tensor(2.0, track_gradient=True)
+    result = ad.log(a)
+    result.backward()
+
+    assert np.isclose(result.value, np.log(2.0))
+    assert np.isclose(a.gradient, 1.0 / a.value)
+
+    # test close to 0
+    c = Tensor(1e-10, track_gradient=True)
+    result = ad.log(c)
+    result.backward()
+
+    assert np.isclose(result.value, np.log(1e-10))
+    assert np.isclose(c.gradient, 1.0 / c.value)
+
+    # test log(1)
+    d = Tensor(1.0, track_gradient=True)
+    result = ad.log(d)
+    result.backward()
+
+    assert np.isclose(result.value, np.log(1.0))
+    assert np.isclose(d.gradient, 1.0 / d.value)

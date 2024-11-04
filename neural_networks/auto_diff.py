@@ -214,7 +214,7 @@ def summation(tensor: Tensor) -> Tensor:
 
 def mean(x: Tensor) -> Tensor:
     total_sum = summation(x)
-    count = Tensor(len(x))
+    count = Tensor(len(x.value))
     return total_sum / count
 
 

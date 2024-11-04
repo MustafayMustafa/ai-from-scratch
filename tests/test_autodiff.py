@@ -267,23 +267,20 @@ def test_softmax():
     pass
 
 
-@pytest.mark.xfail
 def test_mean():
-    a = Tensor(2.0, track_gradient=True)
-    b = Tensor(4.0, track_gradient=True)
-    c = Tensor(6.0, track_gradient=True)
-    tensors = [a, b, c]
-    result = ad.mean(tensors)
+    x = Tensor(np.array([1, 2, 3]), track_gradient=True)
+    # a = Tensor(2.0, track_gradient=True)
+    # b = Tensor(4.0, track_gradient=True)
+    # c = Tensor(6.0, track_gradient=True)
+    result = ad.mean(x)
 
-    expected_value = np.mean([2.0, 4.0, 6.0])
+    expected_value = np.mean([1, 2, 3])
     assert np.isclose(result.value, expected_value)
 
     result.backward()
-    expected_gradient = 1 / len(tensors)
-
-    assert np.isclose(a.gradient, expected_gradient)
-    assert np.isclose(b.gradient, expected_gradient)
-    assert np.isclose(c.gradient, expected_gradient)
+    expected_gradients = np.array([1 / 3, 1 / 3, 1 / 3])
+    assert np.allclose(x.gradient, expected_gradients)
+    assert result.gradient == 1
 
 
 def test_sqrt():

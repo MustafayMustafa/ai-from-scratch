@@ -89,6 +89,25 @@ def negate(x):
     return result
 
 
+def maximum(a, b):
+    track_gradient = any([a.track_gradient, b.track_gradient])
+    result = Tensor(max(a.value, b.value), track_gradient)
+
+    def _backward(output_tensor):
+        if a.track_gradient and a.value > b.value:
+            a.gradient = (a.gradient or 0) + output_tensor.gradient
+        if b.track_gradient and a.value < b.value:
+            b.gradient = (b.gradient or 0) + output_tensor.gradient
+        elif a.track_gradient and b.track_gradient and a.value == b.value:
+            a.gradient = (a.gradient or 0) + output_tensor.gradient * 0.5
+            b.gradient = (b.gradient or 0) + output_tensor.gradient * 0.5
+
+    result.backward_function = _backward
+    result.parents = [a, b]
+
+    return result
+
+
 class Tensor:
     def __init__(self, value, track_gradient=False):
         self.value = value

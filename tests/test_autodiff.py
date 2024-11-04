@@ -1,6 +1,6 @@
 import numpy as np
-from neural_networks.auto_diff import Tensor, exp
-from common.activation_functions import sigmoid, tanh
+from neural_networks.auto_diff import Tensor, exp, maximum
+from common.activation_functions import sigmoid
 
 
 def test_addition():
@@ -93,3 +93,35 @@ def test_sigmoid_operation():
 
     assert np.isclose(result.value, 1 / (1 + np.exp(-x.value)))
     assert np.isclose(x.gradient, result.value * (1 - result.value))
+
+
+def test_maximum():
+    # test a>b
+    a = Tensor(5.0, track_gradient=True)
+    b = Tensor(3.0, track_gradient=True)
+    result = maximum(a, b)
+    result.backward()
+
+    assert result.value == 5
+    assert a.gradient == 1
+    assert b.gradient == None
+
+    # test a<b
+    a = Tensor(2.0, track_gradient=True)
+    b = Tensor(3.0, track_gradient=True)
+    result = maximum(a, b)
+    result.backward()
+
+    assert result.value == 3
+    assert a.gradient == None
+    assert b.gradient == 1
+
+    # test a==b
+    a = Tensor(3.0, track_gradient=True)
+    b = Tensor(3.0, track_gradient=True)
+    result = maximum(a, b)
+    result.backward()
+
+    assert result.value == 3
+    assert a.gradient == 0.5
+    assert b.gradient == 0.5

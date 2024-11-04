@@ -146,7 +146,28 @@ def negate(x: Tensor) -> Tensor:
 
 
 def maximum(a: Tensor, b: Tensor) -> Tensor:
-    pass
+    track_gradient = any([a.track_gradient, b.track_gradient])
+    result_value = np.maximum(a.value, b.value)
+    result = Tensor(result_value, track_gradient)
+
+    def _backward(output_tensor):
+        mask_a = a.value > b.value
+        mask_b = b.value > a.value
+        # Handle the case where a and b are equal by dividing the gradient
+        mask_equal = a.value == b.value
+
+        if a.track_gradient:
+            a.gradient = (a.gradient or 0) + output_tensor.gradient * (
+                mask_a + 0.5 * mask_equal
+            )
+        if b.track_gradient:
+            b.gradient = (b.gradient or 0) + output_tensor.gradient * (
+                mask_b + 0.5 * mask_equal
+            )
+
+    result.backward_function = _backward
+    result.parents = [a, b]
+    return result
 
 
 def reduce_max(tensor: Tensor) -> Tensor:

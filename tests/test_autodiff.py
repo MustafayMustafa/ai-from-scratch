@@ -169,7 +169,6 @@ def test_sigmoid_operation():
     assert np.allclose(array_x.gradient, expected_gradients)
 
 
-@pytest.mark.xfail
 def test_maximum():
     # test a>b
     a = Tensor(5.0, track_gradient=True)
@@ -243,7 +242,7 @@ def test_relu():
     assert np.array_equal(array_input.gradient, expected_gradient)
 
 
-def test_max():
+def test_reduce_max():
     x = Tensor(np.array([1, 4, 2]), track_gradient=True)
     result = ad.reduce_max(x)
     result.backward()

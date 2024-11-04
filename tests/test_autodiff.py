@@ -181,3 +181,58 @@ def test_softmax():
 
     result_values = [tensor.value for tensor in result]
     assert np.isclose(sum(result_values), 1.0)
+
+
+def test_mean():
+    a = Tensor(2.0, track_gradient=True)
+    b = Tensor(4.0, track_gradient=True)
+    c = Tensor(6.0, track_gradient=True)
+    tensors = [a, b, c]
+    result = ad.mean(tensors)
+
+    expected_value = np.mean([2.0, 4.0, 6.0])
+    assert np.isclose(result.value, expected_value)
+
+    result.backward()
+    expected_gradient = 1 / len(tensors)
+
+    assert np.isclose(a.gradient, expected_gradient)
+    assert np.isclose(b.gradient, expected_gradient)
+    assert np.isclose(c.gradient, expected_gradient)
+
+
+def test_sqrt():
+    a = Tensor(4.0, track_gradient=True)
+    result = ad.sqrt(a)
+
+    expected_value = np.sqrt(4.0)
+    assert np.isclose(result.value, expected_value)
+
+    result.backward()
+    expected_gradient = 0.5 / np.sqrt(4.0)
+    assert np.isclose(a.gradient, expected_gradient)
+
+
+def test_absolute():
+    a = Tensor(5.0, track_gradient=True)
+    result = ad.absolute(a)
+    result.backward()
+
+    assert result.value == 5.0
+    assert np.isclose(a.gradient, 1.0)
+
+    # Test for negative value
+    b = Tensor(-3.0, track_gradient=True)
+    result = ad.absolute(b)
+    result.backward()
+
+    assert result.value == 3.0
+    assert np.isclose(b.gradient, -1.0)
+
+    # Test for zero
+    c = Tensor(0.0, track_gradient=True)
+    result = ad.absolute(c)
+    result.backward()
+
+    assert result.value == 0.0
+    assert np.isclose(c.gradient, 0.0)

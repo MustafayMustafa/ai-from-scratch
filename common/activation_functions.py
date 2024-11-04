@@ -1,17 +1,22 @@
 from typing import Callable
 import numpy as np
+from neural_networks.auto_diff import Tensor, exp
 
 
 def sigmoid(x):
-    # clamp for numerical stability
-    x = np.clip(x, -700, 700)
+    if isinstance(x, Tensor):
+        constant_one = Tensor(1)
+        return constant_one / (constant_one + exp(-x))
+    else:
+        # clamp for numerical stability
+        x = np.clip(x, -700, 700)
 
-    # two formulations for numerical stability
-    return np.where(
-        x >= 0,
-        1 / (1 + np.exp(-x)),
-        np.exp(x) / (1 + np.exp(x)),
-    )
+        # two formulations for numerical stability
+        return np.where(
+            x >= 0,
+            1 / (1 + np.exp(-x)),
+            np.exp(x) / (1 + np.exp(x)),
+        )
 
 
 def relu(x):
@@ -25,24 +30,32 @@ def softmax(x):
 
 
 def tanh(x):
-    if np.isscalar(x):
-        if x > 20:
-            return 1
-        elif x < -20:
-            return -1
-        else:
-            return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
+    if isinstance(x, Tensor):
+        exponential = exp(x)
+        negative_exponentail = exp(-x)
+        return (exponential - negative_exponentail) / (
+            exponential + negative_exponentail
+        )
+    else:
 
-    x = np.asarray(x)
-    result = np.zeros_like(x)
+        if np.isscalar(x):
+            if x > 20:
+                return 1
+            elif x < -20:
+                return -1
+            else:
+                return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
 
-    # handle numerical stability
-    result[x > 20] = 1
-    result[x < -20] = -1
+        x = np.asarray(x)
+        result = np.zeros_like(x)
 
-    mask = (x >= -20) & (x <= 20)
-    result[mask] = (np.exp(x[mask]) - np.exp(-x[mask])) / (
-        np.exp(x[mask]) + np.exp(-x[mask])
-    )
+        # handle numerical stability
+        result[x > 20] = 1
+        result[x < -20] = -1
 
-    return result
+        mask = (x >= -20) & (x <= 20)
+        result[mask] = (np.exp(x[mask]) - np.exp(-x[mask])) / (
+            np.exp(x[mask]) + np.exp(-x[mask])
+        )
+
+        return result

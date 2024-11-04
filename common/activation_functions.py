@@ -25,7 +25,7 @@ def sigmoid(x):
 
 def relu(x):
     if isinstance(x, ad.Tensor):
-        return ad.maximum(ad.Tensor(0), x)
+        return ad.relu(x)
     else:
         return np.maximum(0, x)
 

@@ -212,7 +212,6 @@ def test_maximum():
     assert np.array_equal(b.gradient, np.where(b.value > a.value, 1, 0))
 
 
-@pytest.mark.xfail
 def test_relu():
     # x > 0
     a = Tensor(2.0, track_gradient=True)
@@ -236,10 +235,9 @@ def test_relu():
     array_result.backward()
 
     expected_value = np.maximum(array_input.value, 0)
-    expected_gradient = np.where(array_input.value > 0, 1, 0)
-
     assert np.array_equal(array_result.value, expected_value)
-    assert np.array_equal(array_input.gradient, expected_gradient)
+    assert np.array_equal(array_input.gradient, np.array([0, 0, 1]))
+    assert np.array_equal(array_result.gradient, np.array([1, 1, 1]))
 
 
 def test_reduce_max():

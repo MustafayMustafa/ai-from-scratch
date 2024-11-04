@@ -252,3 +252,22 @@ def log(tensor: Tensor) -> Tensor:
     result.parents = [tensor]
 
     return result
+
+
+def relu(tensor: Tensor) -> Tensor:
+    result_value = np.maximum(tensor.value, 0)
+    result = Tensor(result_value, tensor.track_gradient)
+
+    def _backward(output_tensor):
+        # Gradient is 1 where tensor.value > 0, else 0
+        if tensor.track_gradient:
+            mask = (
+                (tensor.value > 0).astype(float)
+                if isinstance(tensor.value, np.ndarray)
+                else float(tensor.value > 0)
+            )
+            tensor.gradient = (tensor.gradient or 0) + output_tensor.gradient * mask
+
+    result.backward_function = _backward
+    result.parents = [tensor]
+    return result

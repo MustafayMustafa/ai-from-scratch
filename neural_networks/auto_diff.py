@@ -48,7 +48,7 @@ class Tensor:
 
 def add(a: Tensor, b: Tensor) -> Tensor:
     track_gradient = any([a.track_gradient, b.track_gradient])
-    result = Tensor(a.value + b.value, track_gradient)
+    result = Tensor(np.add(a.value, b.value), track_gradient)
 
     def _backward(output_tensor):
         if a.track_gradient:
@@ -63,7 +63,7 @@ def add(a: Tensor, b: Tensor) -> Tensor:
 
 def subtract(a: Tensor, b: Tensor) -> Tensor:
     track_gradient = any([a.track_gradient, b.track_gradient])
-    result = Tensor(a.value - b.value, track_gradient)
+    result = Tensor(np.subtract(a.value, b.value), track_gradient)
 
     def _backward(output_tensor):
         if a.track_gradient:
@@ -78,7 +78,7 @@ def subtract(a: Tensor, b: Tensor) -> Tensor:
 
 def multiply(a: Tensor, b: Tensor) -> Tensor:
     track_gradient = any([a.track_gradient, b.track_gradient])
-    result = Tensor(a.value * b.value, track_gradient)
+    result = Tensor(np.multiply(a.value, b.value), track_gradient)
 
     def _backward(output_tensor):
         if a.track_gradient:
@@ -93,12 +93,23 @@ def multiply(a: Tensor, b: Tensor) -> Tensor:
 
 def power(base: Tensor, exponent: float) -> Tensor:
     track_gradient = base.track_gradient
-    result = Tensor(base.value**exponent, track_gradient)
+    base_value = (
+        base.value.astype(float)
+        if isinstance(base.value, np.ndarray)
+        else float(base.value)
+    )
+
+    result = Tensor(np.power(base_value, exponent), track_gradient)
 
     def _backward(output_tensor):
+        base_value = (
+            base.value.astype(float)
+            if isinstance(base.value, np.ndarray)
+            else float(base.value)
+        )
         if base.track_gradient:
             base.gradient = (base.gradient or 0) + output_tensor.gradient * exponent * (
-                base.value ** (exponent - 1)
+                np.power(base_value, (exponent - 1))
             )
 
     result.backward_function = _backward
@@ -135,51 +146,54 @@ def negate(x: Tensor) -> Tensor:
 
 
 def maximum(a: Tensor, b: Tensor) -> Tensor:
-    track_gradient = any([a.track_gradient, b.track_gradient])
-    result = Tensor(max(a.value, b.value), track_gradient)
+    pass
+
+
+def reduce_max(tensor: Tensor) -> Tensor:
+    max_value = tensor.value[0]
+    max_index = 0
+
+    for i in range(1, len(tensor.value)):
+        if tensor.value[i] > max_value:
+            max_value = tensor.value[i]
+            max_index = i
+
+    result = Tensor(max_value, track_gradient=tensor.track_gradient)
 
     def _backward(output_tensor):
-        if a.track_gradient and a.value > b.value:
-            a.gradient = (a.gradient or 0) + output_tensor.gradient
-        if b.track_gradient and a.value < b.value:
-            b.gradient = (b.gradient or 0) + output_tensor.gradient
-        elif a.track_gradient and b.track_gradient and a.value == b.value:
-            a.gradient = (a.gradient or 0) + output_tensor.gradient * 0.5
-            b.gradient = (b.gradient or 0) + output_tensor.gradient * 0.5
+        if tensor.track_gradient:
+
+            tensor.gradient = (
+                tensor.gradient
+                if tensor.gradient is not None
+                else np.zeros_like(tensor.value)
+            )
+            tensor.gradient[max_index] += output_tensor.gradient
 
     result.backward_function = _backward
-    result.parents = [a, b]
+    result.parents = [tensor]
 
     return result
 
 
-def max_in_list(x: list) -> Tensor:
-    max_tensor = x[0]
-    for tensor in x[1:]:
-        max_tensor = maximum(max_tensor, tensor)
-
-    return max_tensor
-
-
-def summation(x: list) -> Tensor:
-    values = [tensor.value for tensor in x]
-    track_gradient = any(tensor.track_gradient for tensor in x)
+def summation(tensor: Tensor) -> Tensor:
+    values = tensor.value
+    track_gradient = tensor.track_gradient
     result = Tensor(np.sum(values), track_gradient)
 
     def _backward(output_tensor):
-        for tensor in x:
-            if tensor.track_gradient:
-                tensor.gradient = (tensor.gradient or 0) + output_tensor.gradient
+        if tensor.track_gradient:
+            tensor.gradient = (tensor.gradient or 0) + output_tensor.gradient
 
     result.backward_function = _backward
-    result.parents = x
+    result.parents = [tensor]
 
     return result
 
 
-def mean(tensors):
-    total_sum = summation(tensors)
-    count = Tensor(len(tensors))
+def mean(x: Tensor) -> Tensor:
+    total_sum = summation(x)
+    count = Tensor(len(x))
     return total_sum / count
 
 

@@ -31,12 +31,12 @@ def relu(x):
 
 
 def softmax(x):
-    if isinstance(x, list) and all(isinstance(t, ad.Tensor) for t in x):
-        max_value = ad.max_in_list(x)
-        stabilised = [tensor - max_value for tensor in x]
-        exponentials = [ad.exp(tensor) for tensor in stabilised]
+    if isinstance(x, ad.Tensor):
+        max_value = ad.reduce_max(x)
+        stabilised = x - max_value
+        exponentials = ad.exp(stabilised)
         sum_exp = ad.summation(exponentials)
-        result = [tensor / sum_exp for tensor in exponentials]
+        result = exponentials / sum_exp
         return result
 
     else:

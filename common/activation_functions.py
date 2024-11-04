@@ -31,9 +31,18 @@ def relu(x):
 
 
 def softmax(x):
-    # subtract max value for numerical stability since it is invariant to constant shifts in the input
-    exponentials = np.exp(x - np.max(x))
-    return exponentials / np.sum(exponentials)
+    if isinstance(x, list) and all(isinstance(t, ad.Tensor) for t in x):
+        max_value = ad.max_in_list(x)
+        stabilised = [tensor - max_value for tensor in x]
+        exponentials = [ad.exp(tensor) for tensor in stabilised]
+        sum_exp = ad.summation(exponentials)
+        result = [tensor / sum_exp for tensor in exponentials]
+        return result
+
+    else:
+        # subtract max value for numerical stability since it is invariant to constant shifts in the input
+        exponentials = np.exp(x - np.max(x))
+        return exponentials / np.sum(exponentials)
 
 
 def tanh(x):

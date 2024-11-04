@@ -108,6 +108,30 @@ def maximum(a, b):
     return result
 
 
+def max_in_list(x: list):
+    max_tensor = x[0]
+    for tensor in x[1:]:
+        max_tensor = maximum(max_tensor, tensor)
+
+    return max_tensor
+
+
+def summation(x: list):
+    values = [tensor.value for tensor in x]
+    track_gradient = any(tensor.track_gradient for tensor in x)
+    result = Tensor(np.sum(values), track_gradient)
+
+    def _backward(output_tensor):
+        for tensor in x:
+            if tensor.track_gradient:
+                tensor.gradient = (tensor.gradient or 0) + output_tensor.gradient
+
+    result.backward_function = _backward
+    result.parents = x
+
+    return result
+
+
 class Tensor:
     def __init__(self, value, track_gradient=False):
         self.value = value

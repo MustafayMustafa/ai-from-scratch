@@ -1,6 +1,7 @@
 import numpy as np
-from neural_networks.auto_diff import Tensor, exp, maximum
-from common.activation_functions import sigmoid, relu
+import neural_networks.auto_diff as ad
+from neural_networks.auto_diff import Tensor, exp, maximum, summation
+from common.activation_functions import sigmoid, relu, softmax, tanh
 
 
 def test_addition():
@@ -143,3 +144,40 @@ def test_relu():
 
     assert result.value == 0
     assert b.gradient is None
+
+
+def test_max():
+    a = Tensor(2.0, track_gradient=True)
+    b = Tensor(4.0, track_gradient=True)
+    c = Tensor(3.0, track_gradient=True)
+    result = ad.max_in_list([a, b, c])
+    result.backward()
+
+    assert result.value == 4
+    assert a.gradient == None
+    assert b.gradient == 1
+    assert c.gradient == None
+
+
+def test_sum():
+    a = Tensor(2.0, track_gradient=True)
+    b = Tensor(3.0, track_gradient=True)
+    c = Tensor(4.0, track_gradient=True)
+    result = summation([a, b, c])
+    result.backward()
+    assert result.value == 9.0
+    assert np.isclose(a.gradient, 1.0)
+    assert np.isclose(b.gradient, 1.0)
+    assert np.isclose(c.gradient, 1.0)
+    assert np.isclose(result.gradient, 1.0)
+
+
+def test_softmax():
+    a = Tensor(1.0, track_gradient=True)
+    b = Tensor(2.0, track_gradient=True)
+    c = Tensor(3.0, track_gradient=True)
+    x = [a, b, c]
+    result = softmax(x)
+
+    result_values = [tensor.value for tensor in result]
+    assert np.isclose(sum(result_values), 1.0)

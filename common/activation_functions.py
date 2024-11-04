@@ -1,12 +1,16 @@
 from typing import Callable
 import numpy as np
-from neural_networks.auto_diff import Tensor, exp
+from neural_networks import auto_diff as ad
+
+# TODO: re-write np arithmetic operations as simple arithmetic operations
+# TODO: np functions do not overload inbuilt functions so need to handle np.exp, np.max separately
+# TODO: try merge functions into a single implementation
 
 
 def sigmoid(x):
-    if isinstance(x, Tensor):
-        constant_one = Tensor(1)
-        return constant_one / (constant_one + exp(-x))
+    if isinstance(x, ad.Tensor):
+        constant_one = ad.Tensor(1)
+        return constant_one / (constant_one + ad.exp(-x))
     else:
         # clamp for numerical stability
         x = np.clip(x, -700, 700)
@@ -20,7 +24,10 @@ def sigmoid(x):
 
 
 def relu(x):
-    return np.maximum(0, x)
+    if isinstance(x, ad.Tensor):
+        return ad.maximum(ad.Tensor(0), x)
+    else:
+        return np.maximum(0, x)
 
 
 def softmax(x):
@@ -30,9 +37,9 @@ def softmax(x):
 
 
 def tanh(x):
-    if isinstance(x, Tensor):
-        exponential = exp(x)
-        negative_exponentail = exp(-x)
+    if isinstance(x, ad.Tensor):
+        exponential = ad.exp(x)
+        negative_exponentail = ad.exp(-x)
         return (exponential - negative_exponentail) / (
             exponential + negative_exponentail
         )

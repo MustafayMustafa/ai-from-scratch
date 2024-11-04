@@ -1,6 +1,6 @@
 import numpy as np
 from neural_networks.auto_diff import Tensor, exp, maximum
-from common.activation_functions import sigmoid
+from common.activation_functions import sigmoid, relu
 
 
 def test_addition():
@@ -125,3 +125,21 @@ def test_maximum():
     assert result.value == 3
     assert a.gradient == 0.5
     assert b.gradient == 0.5
+
+
+def test_relu():
+    # x > 0
+    a = Tensor(2.0, track_gradient=True)
+    result = relu(a)
+    result.backward()
+
+    assert result.value == 2
+    assert a.gradient == 1
+
+    # x < 0
+    b = Tensor(-1.0, track_gradient=True)
+    result = relu(b)
+    result.backward()
+
+    assert result.value == 0
+    assert b.gradient is None

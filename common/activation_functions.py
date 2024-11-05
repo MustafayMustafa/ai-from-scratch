@@ -42,11 +42,7 @@ def softmax(x):
 
 def tanh(x):
     if isinstance(x, ad.Tensor):
-        exponential = ad.exp(x)
-        negative_exponentail = ad.exp(-x)
-        return (exponential - negative_exponentail) / (
-            exponential + negative_exponentail
-        )
+        return ad.tanh(x)
     else:
 
         if np.isscalar(x):

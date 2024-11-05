@@ -292,3 +292,18 @@ def softmax(tensor: Tensor) -> Tensor:
     result.backward_function = _backward
     result.parents = [tensor]
     return result
+
+
+def tanh(tensor: Tensor) -> Tensor:
+    tanh_value = np.tanh(tensor.value)
+    result = Tensor(tanh_value, track_gradient=tensor.track_gradient)
+
+    def _backward(output_tensor):
+        if tensor.track_gradient:
+            if tensor.gradient is None:
+                tensor.gradient = np.zeros_like(tensor.value)
+            tensor.gradient += output_tensor.gradient * (1 - tanh_value**2)
+
+    result.backward_function = _backward
+    result.parents = [tensor]
+    return result

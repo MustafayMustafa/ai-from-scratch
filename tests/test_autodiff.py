@@ -1,7 +1,7 @@
 import numpy as np
 
 import neural_networks.auto_diff as ad
-from common.activation_functions import relu, sigmoid, softmax
+from common.activation_functions import relu, sigmoid, softmax, tanh
 from neural_networks.auto_diff import Tensor, exp, maximum, summation
 import pytest
 
@@ -406,3 +406,16 @@ def test_log():
 
     assert np.allclose(array_result.value, expected_array_value)
     assert np.allclose(array_a.gradient, expected_array_gradient)
+
+
+def test_tanh():
+    x_values = np.array([0.0, 1.0, -1.0, 2.0, -2.0])
+    x = ad.Tensor(x_values, track_gradient=True)
+    result = tanh(x)
+
+    expected_output = np.tanh(x_values)
+    assert np.allclose(result.value, expected_output)
+
+    result.backward()
+    expected_gradient = 1 - np.square(expected_output)
+    assert np.allclose(x.gradient, expected_gradient)

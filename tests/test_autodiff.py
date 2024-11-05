@@ -275,9 +275,24 @@ def test_sum():
     assert np.isclose(result.gradient, 1.0)
 
 
-@pytest.mark.xfail
 def test_softmax():
-    pass
+    x_values = np.array([1.0, 3.0, 3.0])
+    x = ad.Tensor(x_values, track_gradient=True)
+
+    max_value = np.max(x_values)
+    exp_values = np.exp(x_values - max_value)
+    expected_output = exp_values / np.sum(exp_values)
+    result = softmax(x)
+
+    assert np.allclose(result.value, expected_output)
+    assert np.isclose(np.sum(result.value), 1.0), "Softmax output does not sum to 1"
+
+    result.backward()
+
+    s = expected_output.reshape(-1, 1)
+    expected_jacobian = np.diagflat(s) - np.dot(s, s.T)
+    expected_gradient = np.dot(expected_jacobian, np.ones_like(x_values))
+    assert np.allclose(x.gradient, expected_gradient)
 
 
 def test_mean():

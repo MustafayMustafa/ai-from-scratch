@@ -271,3 +271,24 @@ def relu(tensor: Tensor) -> Tensor:
     result.backward_function = _backward
     result.parents = [tensor]
     return result
+
+
+def softmax(tensor: Tensor) -> Tensor:
+    max_value = np.max(tensor.value)
+    exp_values = np.exp(tensor.value - max_value)
+    softmax_values = exp_values / np.sum(exp_values)
+    result = Tensor(softmax_values, track_gradient=tensor.track_gradient)
+
+    def _backward(output_tensor):
+        if tensor.track_gradient:
+            if tensor.gradient is None:
+                tensor.gradient = np.zeros_like(tensor.value)
+
+            # Compute the Jacobian matrix for softmax
+            s = softmax_values.reshape(-1, 1)
+            jacobian = np.diagflat(s) - np.dot(s, s.T)
+            tensor.gradient += np.dot(jacobian, output_tensor.gradient)
+
+    result.backward_function = _backward
+    result.parents = [tensor]
+    return result

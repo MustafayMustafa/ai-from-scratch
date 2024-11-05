@@ -32,12 +32,7 @@ def relu(x):
 
 def softmax(x):
     if isinstance(x, ad.Tensor):
-        max_value = ad.reduce_max(x)
-        stabilised = x - max_value
-        exponentials = ad.exp(stabilised)
-        sum_exp = ad.summation(exponentials)
-        result = exponentials / sum_exp
-        return result
+        return ad.softmax(x)
 
     else:
         # subtract max value for numerical stability since it is invariant to constant shifts in the input

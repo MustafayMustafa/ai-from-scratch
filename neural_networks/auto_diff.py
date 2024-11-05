@@ -307,3 +307,47 @@ def tanh(tensor: Tensor) -> Tensor:
     result.backward_function = _backward
     result.parents = [tensor]
     return result
+
+
+def binary_cross_entropy(truth, prediction):
+    # Clip prediction values for numerical stability
+    prediction_value = np.clip(prediction.value, 1e-15, 1 - 1e-15)
+    bce_value = -np.mean(
+        truth.value * np.log(prediction_value)
+        + (1 - truth.value) * np.log(1 - prediction_value)
+    )
+
+    result = Tensor(
+        bce_value, track_gradient=truth.track_gradient or prediction.track_gradient
+    )
+
+    def _backward(output_tensor):
+        if truth.track_gradient or prediction.track_gradient:
+            if truth.track_gradient and truth.gradient is None:
+                truth.gradient = np.zeros_like(truth.value, dtype=np.float64)
+            if prediction.track_gradient and prediction.gradient is None:
+                prediction.gradient = np.zeros_like(prediction.value, dtype=np.float64)
+
+            # Gradient for prediction: - (truth / prediction - (1 - truth) / (1 - prediction)) / N
+            N = truth.value.size
+            grad_prediction = (
+                -(
+                    truth.value / prediction_value
+                    - (1 - truth.value) / (1 - prediction_value)
+                )
+                / N
+            )
+
+            if prediction.track_gradient:
+                prediction.gradient += grad_prediction * output_tensor.gradient
+
+            if truth.track_gradient:
+                grad_truth = (
+                    -np.log(prediction_value + 1e-15) / N
+                    + np.log(1 - prediction_value + 1e-15) / N
+                )
+                truth.gradient += grad_truth * output_tensor.gradient
+
+    result.backward_function = _backward
+    result.parents = [truth, prediction]
+    return result

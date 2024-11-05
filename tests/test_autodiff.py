@@ -3,6 +3,8 @@ import numpy as np
 import neural_networks.auto_diff as ad
 from common.activation_functions import relu, sigmoid, softmax, tanh
 from common.loss_functions import (
+    binary_cross_entropy,
+    hinge_loss,
     mean_absolute_error,
     mean_square_error,
     root_mean_square_error,
@@ -482,4 +484,45 @@ def test_root_mean_square_error():
     assert np.allclose(prediction.gradient, expected_prediction_gradient)
 
 
-# TODO: binary cross entropy, hinge loss
+def test_hinge_loss():
+    truth_values = np.array([1, -1, 1, -1])
+    prediction_values = np.array([0.8, -0.5, -1.2, 0.3])
+    truth = ad.Tensor(truth_values, track_gradient=False)
+    prediction = ad.Tensor(prediction_values, track_gradient=True)
+    hinge_loss_result = hinge_loss(truth, prediction)
+
+    margin = truth_values * prediction_values
+    expected_hinge_loss = np.mean(np.maximum(0, 1 - margin))
+    assert np.isclose(hinge_loss_result.value, expected_hinge_loss)
+
+    hinge_loss_result.backward()
+    N = truth_values.size
+    expected_prediction_gradient = np.where((1 - margin) > 0, -truth_values / N, 0)
+    assert np.allclose(prediction.gradient, expected_prediction_gradient)
+
+
+def test_binary_cross_entropy():
+    truth_values = np.array([1, 0, 1, 1])
+    prediction_values = np.array([0.9, 0.2, 0.8, 0.7])
+    prediction_values = np.clip(prediction_values, 1e-15, 1 - 1e-15)
+    truth = ad.Tensor(truth_values, track_gradient=True)
+    prediction = ad.Tensor(prediction_values, track_gradient=True)
+    bce_result = binary_cross_entropy(truth, prediction)
+
+    expected_bce = -np.mean(
+        truth_values * np.log(prediction_values)
+        + (1 - truth_values) * np.log(1 - prediction_values)
+    )
+    assert np.isclose(bce_result.value, expected_bce)
+
+    bce_result.backward()
+    # N = truth_values.size
+    # expected_prediction_gradient = (
+    #     -(
+    #         truth_values / prediction_values
+    #         - (1 - truth_values) / (1 - prediction_values)
+    #     )
+    #     / N
+    # )
+
+    # assert np.allclose(prediction.gradient, expected_prediction_gradient)

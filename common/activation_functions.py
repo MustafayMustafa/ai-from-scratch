@@ -2,10 +2,6 @@ from typing import Callable
 import numpy as np
 from neural_networks import auto_diff as ad
 
-# TODO: re-write np arithmetic operations as simple arithmetic operations
-# TODO: np functions do not overload inbuilt functions so need to handle np.exp, np.max separately
-# TODO: try merge functions into a single implementation
-
 
 def sigmoid(x):
     if isinstance(x, ad.Tensor):

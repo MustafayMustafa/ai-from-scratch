@@ -25,14 +25,11 @@ def root_mean_square_error(truth, prediction):
 
 
 def binary_cross_entropy(truth, prediction):
-    # clip for numerical stability
-    prediction = np.clip(prediction, 1e-15, 1 - 1e-15)
-
     if isinstance(truth, Tensor) and isinstance(prediction, Tensor):
-        return -ad.mean(
-            truth * ad.log(prediction) + (1 - truth) * ad.log(1 - prediction)
-        )
+        return ad.binary_cross_entropy(truth, prediction)
     else:
+        # clip for numerical stability
+        prediction = np.clip(prediction, 1e-15, 1 - 1e-15)
         return -np.mean(
             truth * np.log(prediction) + (1 - truth) * np.log(1 - prediction)
         )
@@ -40,9 +37,10 @@ def binary_cross_entropy(truth, prediction):
 
 def hinge_loss(truth, prediction):
     margin = truth * prediction
-    losses = 1 - margin
 
     if isinstance(truth, Tensor) and isinstance(prediction, Tensor):
-        return ad.mean(ad.maximum(0, losses))
+        losses = Tensor(1) - margin
+        return ad.mean(ad.maximum(Tensor(0), losses))
     else:
+        losses = 1 - margin
         return np.mean(np.maximum(0, losses))

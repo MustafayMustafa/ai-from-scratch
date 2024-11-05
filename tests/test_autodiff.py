@@ -2,6 +2,11 @@ import numpy as np
 
 import neural_networks.auto_diff as ad
 from common.activation_functions import relu, sigmoid, softmax, tanh
+from common.loss_functions import (
+    mean_absolute_error,
+    mean_square_error,
+    root_mean_square_error,
+)
 from neural_networks.auto_diff import Tensor, exp, maximum, summation
 import pytest
 
@@ -419,3 +424,62 @@ def test_tanh():
     result.backward()
     expected_gradient = 1 - np.square(expected_output)
     assert np.allclose(x.gradient, expected_gradient)
+
+
+def test_mean_absolute_error():
+    truth_values = np.array([3.0, -0.5, 2.0, 7.0])
+    prediction_values = np.array([2.5, 0.0, 2.0, 8.0])
+    truth = ad.Tensor(truth_values, track_gradient=True)
+    prediction = ad.Tensor(prediction_values, track_gradient=True)
+    mae_result = mean_absolute_error(truth, prediction)
+
+    expected_mae = np.mean(np.abs(truth_values - prediction_values))
+    assert np.isclose(mae_result.value, expected_mae)
+
+    mae_result.backward()
+    N = truth_values.size
+    expected_truth_gradient = np.sign(truth_values - prediction_values) / N
+    expected_prediction_gradient = -np.sign(truth_values - prediction_values) / N
+    assert np.allclose(truth.gradient, expected_truth_gradient)
+    assert np.allclose(prediction.gradient, expected_prediction_gradient)
+
+
+def test_mean_square_error():
+    truth_values = np.array([3.0, -0.5, 2.0, 7.0])
+    prediction_values = np.array([2.5, 0.0, 2.0, 8.0])
+    truth = ad.Tensor(truth_values, track_gradient=True)
+    prediction = ad.Tensor(prediction_values, track_gradient=True)
+    mse_result = mean_square_error(truth, prediction)
+
+    expected_mse = np.mean((truth_values - prediction_values) ** 2)
+    assert np.isclose(mse_result.value, expected_mse)
+
+    mse_result.backward()
+    N = truth_values.size
+    expected_truth_gradient = 2 * (truth_values - prediction_values) / N
+    expected_prediction_gradient = -2 * (truth_values - prediction_values) / N
+    assert np.allclose(truth.gradient, expected_truth_gradient)
+    assert np.allclose(prediction.gradient, expected_prediction_gradient)
+
+
+def test_root_mean_square_error():
+    truth_values = np.array([3.0, -0.5, 2.0, 7.0])
+    prediction_values = np.array([2.5, 0.0, 2.0, 8.0])
+    truth = ad.Tensor(truth_values, track_gradient=True)
+    prediction = ad.Tensor(prediction_values, track_gradient=True)
+    rmse_result = root_mean_square_error(truth, prediction)
+
+    expected_rmse = np.sqrt(np.mean((truth_values - prediction_values) ** 2))
+    assert np.isclose(rmse_result.value, expected_rmse)
+
+    rmse_result.backward()
+    N = truth_values.size
+    expected_truth_gradient = (truth_values - prediction_values) / (N * expected_rmse)
+    expected_prediction_gradient = -(truth_values - prediction_values) / (
+        N * expected_rmse
+    )
+    assert np.allclose(truth.gradient, expected_truth_gradient)
+    assert np.allclose(prediction.gradient, expected_prediction_gradient)
+
+
+# TODO: binary cross entropy, hinge loss

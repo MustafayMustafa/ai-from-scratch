@@ -108,6 +108,21 @@ def test_division():
     assert np.isclose(x.gradient, 1 / y.value)
     assert np.isclose(y.gradient, -x.value / (y.value**2))
 
+    # test arrays
+    x = Tensor(np.array([6, 8, 10]), track_gradient=True)
+    y = Tensor(np.array([3, 4, 5]), track_gradient=True)
+    result = x / y
+    result.backward()
+
+    expected_value = np.array([6.0 / 3.0, 8.0 / 4.0, 10.0 / 5.0])
+    assert np.allclose(result.value, expected_value)
+
+    expected_x_gradient = 1 / y.value
+    expected_y_gradient = -x.value / (y.value**2)
+    assert np.allclose(x.gradient, expected_x_gradient)
+    assert np.allclose(y.gradient, expected_y_gradient)
+    assert np.array_equal(result.gradient, np.array([1, 1, 1]))
+
 
 def test_exponential():
     x = Tensor(2.0, track_gradient=True)
